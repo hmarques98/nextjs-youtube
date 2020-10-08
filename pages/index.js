@@ -1,65 +1,95 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import Link from "next/link";
+import styles from "../styles/Home.module.scss";
 
-export default function Home() {
+import { motion } from "framer-motion";
+
+const variants = {
+  hidden: { opacity: 0, scale: 0.1 },
+  visible: { opacity: 1, scale: 1 },
+};
+
+export default function Home({ data }) {
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
-        <title>Create Next App</title>
+        <title>Next App Server Side Props</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+      <main>
+        <h1>My Playlist youtube about Programmer</h1>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <motion.ul
+          initial="hidden"
+          animate={["visible"]}
+          variants={variants}
+          transition={{ bounceDamping: 1, duration: 0.8 }}
+          style={{ maxWidth: 700, background: "#f8f2" }}
         >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+          {data.items.map((item) => {
+            const { id, snippet = {} } = item;
+            const {
+              title,
+              thumbnails,
+              publishedAt,
+              resourceId,
+              description,
+            } = snippet;
+            const { medium = {} } = thumbnails;
+            const published = new Date(publishedAt).toLocaleDateString(
+              "pt-br",
+              {
+                dateStyle: "full",
+              }
+            );
+            return (
+              <motion.li
+                transition={{ duration: 0.3 }}
+                whileHover={{
+                  scale: [1, 1.5, 0.9],
+                  rotate: [0, 10, 0],
+                }}
+                whileTap={{ scale: 0.9 }}
+                key={id}
+              >
+                <Link href={`/video/${[resourceId.videoId]}`}>
+                  <a>
+                    <img
+                      width={medium.width}
+                      height={medium.height}
+                      src={medium.url}
+                      alt="image"
+                    />
+
+                    <h3>{title} </h3>
+                    <motion.p animate={{ scale: 1 }}>
+                      {description.slice(0, 150)}...
+                    </motion.p>
+                    <p>{published}</p>
+                  </a>
+                </Link>
+              </motion.li>
+            );
+          })}
+        </motion.ul>
+      </main>
     </div>
-  )
+  );
+}
+
+const YOUTUBE_PLAYLIST_URL =
+  "https://www.googleapis.com/youtube/v3/playlistItems";
+
+export async function getServerSideProps() {
+  const res = await fetch(
+    `${YOUTUBE_PLAYLIST_URL}?part=snippet&playlistId=PL3AdiJpyw-Wokse3S668DbU6hOKXXIAw8&maxResults=20&key=${process.env.API_KEY_YOUTUBE}`
+  );
+  const data = await res.json();
+
+  return {
+    props: {
+      data,
+    },
+  };
 }

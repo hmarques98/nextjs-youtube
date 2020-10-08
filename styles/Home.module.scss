@@ -79,11 +79,15 @@
 
   max-width: 800px;
   margin-top: 3rem;
+
+  img {
+    max-width: 100%;
+  }
 }
 
 .card {
-  margin: 1rem;
-  flex-basis: 45%;
+  flex-basis: auto;
+  margin: 200;
   padding: 1.5rem;
   text-align: left;
   color: inherit;
